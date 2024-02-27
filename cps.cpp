@@ -1,79 +1,206 @@
 #include <iostream>
-using namespace std;
+#include <fstream>
+#include <sstream>
+#include <ctime>
+#include <chrono>
+#include <iomanip>
+#include <vector>
+#include <experimental/filesystem>  // Use experimental version
+#include <queue>
+#include <algorithm>
 
+namespace fs = std::experimental::filesystem;
+
+const int MAX_FILES = 5;
+const int MAX_FILE_SIZE_MB = 5;
+
+std::string getCurrentDateTime() {
+    auto now = std::chrono::system_clock::now();
+    std::time_t now_c = std::chrono::system_clock::to_time_t(now);
+    std::stringstream ss;
+    ss << std::put_time(std::localtime(&now_c), "%Y%m%d_%H%M%S");
+    return ss.str();
+}
+
+void createNewFile(std::ofstream& file, std::string& currentFileName, int& fileCounter, std::queue<std::string>& fileQueue) {
+    if (file.is_open()) {
+        file.close();
+    }
+
+    if (fileCounter >= MAX_FILES) {
+        // Delete the oldest file
+        if (!fileQueue.empty()) {
+            fs::remove(fileQueue.front());
+            fileQueue.pop();
+        }
+    }
+
+    // Create a new file on the desktop
+    fs::path desktopPath = fs::path(getenv("HOME")) / "Desktop";
+    currentFileName = desktopPath.string() + "/file_" + getCurrentDateTime();
+    fileQueue.push(currentFileName + ".txt");
+    file.open(currentFileName + ".txt");
+    fileCounter++;
+}
 
 int main() {
-  int rick=0,bus=0,car=0,amount=0,veh=0,choice=0;
-  while(true){
-  cout<<"WELCOME TO CAR PARKING SYSYTEM";
-  cout<<endl;
-  cout<<endl;
-  cout<<"Press-1 : For  rickshaw "<<endl;
-  cout<<"Press-2 : For  Bus "<<endl;
-  cout<<"Press-3 : For  car "<<endl;
-  cout<<"Press-4 : To Show all the records "<<endl;
-  cout<<"Press-5 : To delete all the records "<<endl;
-  cout<<endl;
-  cout<<"Enter your choice";
-  cin>>choice;
-  
-  switch(choice){
-  case 1:
-  rick++;
-  amount+=100;
-  veh++;
-  cout<<endl;
-  cout<<"ADD ONE RICKSHAW IN RECORD";
-  cout<<endl;
-  system("pause");
-  system("cls");
-  break;
-  
-  case 2:
-  bus++;
-  amount+=200;
-  veh++;
-  cout<<endl;
-  cout<<"ADD ONE BUS IN RECORD";
-  cout<<endl;
-  system("pause");
-  system("cls");
-   break;
-  
-  case 3:
-  car++;
-  amount+=300;
-  veh++;
-  cout<<endl;
-  cout<<"ADD ONE CAR IN RECORD";
-  cout<<endl;
-  system("pause");
-  system("cls");
-   break;
-  
-  case 4:
-  cout<<"TOTAL AMOUNT="<<amount<<endl;
-  cout<<"TOTAL VEHICLES = "<<veh<<endl;
-  cout<<" TOTAL CARS IS = "<<car<<endl;
-  cout<<" TOTAL BUS IS = "<<bus<<endl;
-  cout<<" TOTAL RICKSHAW IS = "<<rick<<endl;
-  system("pause");
-  system("cls");
-   break;
-  
-  case 5:
-  veh=0,car=0,bus=0,amount=0,rick=0;
-  cout<<"ALL RECORDS HAVE BEEN DELETED";
-   break;
-   
-  default:
-  cout<<"INVALID IMPUT"<<endl;
-  
-   
-  
-  }
-  
-  }
+    std::vector<char> data(1024 * 1024, 'A');  // 1 MB of data
+
+    std::ofstream outputFile;
+    std::string currentFileName = "";
+    int fileCounter = 0;
+    std::queue<std::string> fileQueue;
+
+    while (true) {
+        if (!outputFile.is_open() || outputFile.tellp() >= MAX_FILE_SIZE_MB * 1024 * 1024) {
+            // If the file is not open or its size exceeds the limit, create a new file
+            createNewFile(outputFile, currentFileName, fileCounter, fileQueue);
+        }
+
+        // Write data to the current file
+        outputFile.write(data.data(), data.size());
+
+        // Optionally, add a delay to simulate the passage of time
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+    }
+
+    return 0;
+}
+
+
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <ctime>
+#include <chrono>
+#include <iomanip>
+#include <vector>
+#include <filesystem>
+#include <queue>
+#include <algorithm>
+
+namespace fs = std::filesystem;
+
+const int MAX_FILES = 5;
+const int MAX_FILE_SIZE_MB = 5;
+
+std::string getCurrentDateTime() {
+    auto now = std::chrono::system_clock::now();
+    std::time_t now_c = std::chrono::system_clock::to_time_t(now);
+    std::stringstream ss;
+    ss << std::put_time(std::localtime(&now_c), "%Y%m%d_%H%M%S");
+    return ss.str();
+}
+
+void createNewFile(std::ofstream& file, std::string& currentFileName, int& fileCounter, std::queue<std::string>& fileQueue) {
+    if (file.is_open()) {
+        file.close();
+    }
+
+    if (fileCounter >= MAX_FILES) {
+        // Delete the oldest file
+        if (!fileQueue.empty()) {
+            fs::remove(fileQueue.front());
+            fileQueue.pop();
+        }
+    }
+
+    // Create a new file on the desktop
+    fs::path desktopPath = fs::path(getenv("HOME")) / "Desktop";
+    currentFileName = desktopPath.string() + "/file_" + getCurrentDateTime();
+    fileQueue.push(currentFileName + ".txt");
+    file.open(currentFileName + ".txt");
+    fileCounter++;
+}
+
+int main() {
+    std::vector<char> data(1024 * 1024, 'A');  // 1 MB of data
+
+    std::ofstream outputFile;
+    std::string currentFileName = "";
+    int fileCounter = 0;
+    std::queue<std::string> fileQueue;
+
+    while (true) {
+        if (!outputFile.is_open() || outputFile.tellp() >= MAX_FILE_SIZE_MB * 1024 * 1024) {
+            // If the file is not open or its size exceeds the limit, create a new file
+            createNewFile(outputFile, currentFileName, fileCounter, fileQueue);
+        }
+
+        // Write data to the current file
+        outputFile.write(data.data(), data.size());
+
+        // Optionally, add a delay to simulate the passage of time
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+    }
+
+    return 0;
+}
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <ctime>
+#include <chrono>
+#include <iomanip>
+#include <vector>
+#include <filesystem>
+#include <queue>
+#include <algorithm>
+
+namespace fs = std::filesystem;
+
+const int MAX_FILES = 5;
+const int MAX_FILE_SIZE_MB = 5;
+
+std::string getCurrentDateTime() {
+    auto now = std::chrono::system_clock::now();
+    std::time_t now_c = std::chrono::system_clock::to_time_t(now);
+    std::stringstream ss;
+    ss << std::put_time(std::localtime(&now_c), "%Y%m%d_%H%M%S");
+    return ss.str();
+}
+
+void createNewFile(std::ofstream& file, std::string& currentFileName, int& fileCounter, std::queue<std::string>& fileQueue) {
+    if (file.is_open()) {
+        file.close();
+    }
+
+    if (fileCounter >= MAX_FILES) {
+        // Delete the oldest file
+        if (!fileQueue.empty()) {
+            fs::remove(fileQueue.front());
+            fileQueue.pop();
+        }
+    }
+
+    // Create a new file on the desktop
+    fs::path desktopPath = fs::path(getenv("USERPROFILE")) / "Desktop";
+    currentFileName = desktopPath.string() + "\\file_" + getCurrentDateTime();
+    fileQueue.push(currentFileName + ".txt");
+    file.open(currentFileName + ".txt");
+    fileCounter++;
+}
+
+int main() {
+    std::vector<char> data(1024 * 1024, 'A');  // 1 MB of data
+
+    std::ofstream outputFile;
+    std::string currentFileName = "";
+    int fileCounter = 0;
+    std::queue<std::string> fileQueue;
+
+    while (true) {
+        if (!outputFile.is_open() || outputFile.tellp() >= MAX_FILE_SIZE_MB * 1024 * 1024) {
+            // If the file is not open or its size exceeds the limit, create a new file
+            createNewFile(outputFile, currentFileName, fileCounter, fileQueue);
+        }
+
+        // Write data to the current file
+        outputFile.write(data.data(), data.size());
+
+        // Optionally, add a delay to simulate the passage of time
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+    }
 
     return 0;
 }
